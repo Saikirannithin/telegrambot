@@ -51,4 +51,5 @@ def chat_with_ai(user_message, user_name, chat_history):
         )
         return response.choices[0].message.content
     except Exception as e:
-        return f"Sorry {user_name}, I'm having trouble thinking right now. Can you try again? 😅"
+        print(f"OPENAI ERROR: {e}")
+    return f"OPENAI ERROR: {e}"
