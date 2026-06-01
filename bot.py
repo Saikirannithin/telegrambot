@@ -52,12 +52,38 @@ except Exception as e:
     logger.error(f"❌ ZingHR error: {e}")
     def punch_in_out(code, direction): return {"error": "ZingHR not configured"}
 
-try:
-    from external_apis import get_weather
-    logger.info("✅ External APIs loaded")
-except Exception as e:
-    logger.error(f"❌ External APIs error: {e}")
-    def get_weather(): return {"error": "Weather API not configured"}
+# --- Inline weather function (no external_apis import) ---
+def get_weather():
+    """Get weather using Open-Meteo (FREE, no API key)"""
+    try:
+        import requests
+        lat, lon = 17.4065, 78.4772
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,weather_code"
+        
+        response = requests.get(url, timeout=10)
+        data = response.json()
+        current = data.get("current", {})
+        
+        weather_emojis = {
+            0: "☀️", 1: "🌤️", 2: "⛅", 3: "☁️", 
+            45: "🌫️", 48: "🌫️",
+            51: "🌦️", 53: "🌧️", 55: "🌧️", 
+            61: "🌧️", 63: "🌧️", 65: "🌧️",
+            71: "🌨️", 73: "🌨️", 75: "🌨️", 
+            95: "⛈️", 96: "⛈️", 99: "⛈️"
+        }
+        
+        emoji = weather_emojis.get(current.get("weather_code", 0), "🌡️")
+        
+        return {
+            "temp": current.get("temperature_2m"),
+            "humidity": current.get("relative_humidity_2m"),
+            "emoji": emoji
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+logger.info("✅ Weather function loaded inline")
 
 # --- Flask App ---
 app = Flask(__name__)
@@ -358,7 +384,6 @@ def webhook():
     
     try:
         update = Update.de_json(request.get_json(force=True), telegram_app.bot)
-        # Use the module-level event loop
         loop.create_task(telegram_app.process_update(update))
         return "OK", 200
     except Exception as e:
@@ -380,7 +405,6 @@ def init_bot():
         return
     
     try:
-        # Use the module-level event loop to run async initialization
         loop.run_until_complete(telegram_app.initialize())
         loop.run_until_complete(telegram_app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook"))
         logger.info(f"🚀 Webhook set to: {WEBHOOK_URL}/webhook")
