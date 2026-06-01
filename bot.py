@@ -1,5 +1,6 @@
 import os
 import logging
+import asyncio
 from flask import Flask, request
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
@@ -18,6 +19,9 @@ app = Flask(__name__)
 
 # --- Telegram App ---
 telegram_app = Application.builder().token(TOKEN).build()
+
+# --- Initialize the app (required for processing updates) ---
+telegram_app.initialize()
 
 # --- Handlers ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -50,7 +54,8 @@ telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 def webhook():
     try:
         update = Update.de_json(request.get_json(force=True), telegram_app.bot)
-        telegram_app.create_task(telegram_app.process_update(update))
+        # Use asyncio to run the async process_update
+        asyncio.create_task(telegram_app.process_update(update))
         return "OK", 200
     except Exception as e:
         logger.error(f"Webhook error: {e}")
@@ -60,9 +65,8 @@ def webhook():
 def health():
     return "✅ Bot is running!", 200
 
-# --- Initialize ONLY when running directly ---
+# --- Set webhook and run (only when running directly) ---
 if __name__ == "__main__":
-    telegram_app.initialize()
     telegram_app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
     logger.info(f"🚀 Webhook set to: {WEBHOOK_URL}/webhook")
     app.run(host="0.0.0.0", port=PORT)
