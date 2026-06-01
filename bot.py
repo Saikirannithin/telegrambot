@@ -363,9 +363,21 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"⚠️ Daily limit: {DAILY_ACTIVITY_LIMIT}")
         return
     
-    # Simple chat response
-    await update.message.reply_text(f"Hey {name}! You said: {text}\n\nI'm learning more features!")
-
+    # Get chat history for context
+    history = get_chat_history(user_id)
+    
+    # Use AI for response (if OpenAI key is configured)
+    try:
+        response = chat_with_ai(text, name, history)
+    except Exception as e:
+        logger.error(f"AI error: {e}")
+        response = f"Hey {name}! You said: {text}\n\nI'm learning more features!"
+    
+    # Log chat
+    log_chat(user_id, text, response)
+    
+    await update.message.reply_text(response)
+    increment_activity(user_id)   
 # --- Register Handlers ---
 if telegram_app:
     telegram_app.add_handler(CommandHandler("start", start))
