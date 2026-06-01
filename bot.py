@@ -1,5 +1,6 @@
 import os
 import logging
+import asyncio
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
@@ -41,11 +42,18 @@ telegram_app.add_handler(CommandHandler("start", start))
 telegram_app.add_handler(CommandHandler("help", help_command))
 telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
-# --- Run Webhook ---
-if __name__ == "__main__":
+# --- Run Webhook with explicit event loop ---
+def main():
+    # Create and set event loop for Python 3.14 compatibility
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
     telegram_app.run_webhook(
         listen="0.0.0.0",
         port=PORT,
         url_path="webhook",
         webhook_url=f"{WEBHOOK_URL}/webhook"
     )
+
+if __name__ == "__main__":
+    main()
