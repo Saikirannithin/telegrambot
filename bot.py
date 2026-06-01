@@ -13,7 +13,7 @@ PORT = int(os.environ.get("PORT", 5000))
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# --- Flask App (MUST be at module level for Gunicorn) ---
+# --- Flask App ---
 app = Flask(__name__)
 
 # --- Telegram App ---
@@ -48,15 +48,19 @@ telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 # --- Routes ---
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    update = Update.de_json(request.get_json(force=True), telegram_app.bot)
-    telegram_app.create_task(telegram_app.process_update(update))
-    return "OK", 200
+    try:
+        update = Update.de_json(request.get_json(force=True), telegram_app.bot)
+        telegram_app.create_task(telegram_app.process_update(update))
+        return "OK", 200
+    except Exception as e:
+        logger.error(f"Webhook error: {e}")
+        return "Error", 500
 
 @app.route("/")
 def health():
     return "✅ Bot is running!", 200
 
-# --- Startup ONLY when running directly (not when imported by Gunicorn) ---
+# --- Initialize ONLY when running directly ---
 if __name__ == "__main__":
     telegram_app.initialize()
     telegram_app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
