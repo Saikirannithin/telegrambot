@@ -384,7 +384,16 @@ def webhook():
     
     try:
         update = Update.de_json(request.get_json(force=True), telegram_app.bot)
-        loop.create_task(telegram_app.process_update(update))
+        
+        # FIX: Use run_coroutine_threadsafe to properly execute async function
+        future = asyncio.run_coroutine_threadsafe(
+            telegram_app.process_update(update), 
+            loop
+        )
+        
+        # Wait for completion with timeout
+        future.result(timeout=10)
+        
         return "OK", 200
     except Exception as e:
         logger.error(f"Webhook error: {e}")
