@@ -13,6 +13,10 @@ from telegram.ext import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# --- Create event loop at module level for async operations ---
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
+
 # --- Safe config loading ---
 try:
     from config import BOT_TOKEN, WEBHOOK_URL, ADMIN_ID, DAILY_ACTIVITY_LIMIT
@@ -30,7 +34,6 @@ try:
     logger.info("✅ Database loaded")
 except Exception as e:
     logger.error(f"❌ Database error: {e}")
-    # Dummy functions
     def get_db(): return None
     def init_db(): pass
 
@@ -355,7 +358,8 @@ def webhook():
     
     try:
         update = Update.de_json(request.get_json(force=True), telegram_app.bot)
-        telegram_app.create_task(telegram_app.process_update(update))
+        # Use the module-level event loop
+        loop.create_task(telegram_app.process_update(update))
         return "OK", 200
     except Exception as e:
         logger.error(f"Webhook error: {e}")
@@ -365,7 +369,7 @@ def webhook():
 def health():
     return "✅ Personal Assistant Bot is running!", 200
 
-# --- Startup ---
+# --- Startup with proper async handling ---
 def init_bot():
     if not telegram_app:
         logger.error("❌ Cannot init: telegram_app is None")
@@ -376,8 +380,9 @@ def init_bot():
         return
     
     try:
-        telegram_app.initialize()
-        telegram_app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
+        # Use the module-level event loop to run async initialization
+        loop.run_until_complete(telegram_app.initialize())
+        loop.run_until_complete(telegram_app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook"))
         logger.info(f"🚀 Webhook set to: {WEBHOOK_URL}/webhook")
     except Exception as e:
         logger.error(f"Init error: {e}")
