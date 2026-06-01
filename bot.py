@@ -379,25 +379,41 @@ if telegram_app:
 # --- Webhook Routes ---
 @app.route("/webhook", methods=["POST"])
 def webhook():
+    logger.info("🔔 WEBHOOK RECEIVED!")
+    
     if not telegram_app:
+        logger.error("❌ telegram_app is None")
         return "Bot not initialized", 500
     
     try:
-        update = Update.de_json(request.get_json(force=True), telegram_app.bot)
+        json_data = request.get_json(force=True)
+        logger.info(f"📦 JSON: {json_data}")
         
-        # FIX: Use run_coroutine_threadsafe to properly execute async function
-        future = asyncio.run_coroutine_threadsafe(
-            telegram_app.process_update(update), 
-            loop
-        )
+        # Check if update_id exists
+        if not json_data or 'update_id' not in json_data:
+            logger.error("❌ Invalid JSON: no update_id")
+            return "Invalid update", 400
         
-        # Wait for completion with timeout
-        future.result(timeout=10)
+        update = Update.de_json(json_data, telegram_app.bot)
+        logger.info(f"📨 Update: {update.update_id}")
         
-        return "OK", 200
+        # Process with try-except inside
+        try:
+            logger.info("⚙️ Processing...")
+            loop.run_until_complete(telegram_app.process_update(update))
+            logger.info("✅ Success")
+            return "OK", 200
+        except Exception as process_error:
+            logger.error(f"❌ Process error: {process_error}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return f"Process error: {str(process_error)}", 500
+            
     except Exception as e:
-        logger.error(f"Webhook error: {e}")
-        return "Error", 500
+        logger.error(f"❌ Webhook error: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return f"Error: {str(e)}", 500
 
 @app.route("/")
 def health():
