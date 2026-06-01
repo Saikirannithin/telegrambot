@@ -30,7 +30,12 @@ except Exception as e:
 
 # --- Safe imports ---
 try:
-    from database import get_db, init_db
+    from database import (
+    get_db,
+    init_db,
+    get_chat_history,
+    log_chat
+)
     logger.info("✅ Database loaded")
 except Exception as e:
     logger.error(f"❌ Database error: {e}")
