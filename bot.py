@@ -43,7 +43,7 @@ except Exception as e:
     def init_db(): pass
 
 try:
-    from ai_engine import clean_response, chat_with_ai
+    from ai_engine import(clean_response, chat_with_ai, detect_intent) 
     logger.info("✅ AI engine loaded")
 except Exception as e:
     logger.error(f"❌ AI engine error: {e}")
@@ -392,22 +392,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Get chat history for context
     history = get_chat_history(user_id)
-    text_lower = text.lower()
+    intent = detect_intent(text)
     logger.info(f"USER MESSAGE: {text}")
 
 
     try: 
         # Weather Intent 
-        if any(word in text_lower for word in [
-            "weather",
-            "temperature",
-            "rain",
-            "climate",
-            "forecast"
-            
-            
-            ]):
-            logger.info("WEATHER INTENT DETECTED")
+        if intent == "weather":
             data = get_weather()
 
             if "error" in data:
@@ -422,22 +413,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 response = clean_response(raw, "weather", name)
 
                     # Punch In Intent
-        elif any(word in text_lower for word in [
-            "punch in",
-            "check in",
-            "start work",
-            "begin shift"
-        ]):
+        elif intent == "punchin":
             await punchin(update, context)
             return
         
         #Punch Out Intent
-        elif any(word in text_lower for word in [
-            "punch out",
-            "check out",
-            "end work",
-            "finish shift"
-        ]):
+        elif intent == "punchout":
             await punchout(update, context)
             return
         
