@@ -163,7 +163,7 @@ Current User Message:
         return f"GEMINI ERROR: {str(e)}"
     
 
-    def detect_intent(user_message):
+def detect_intent(user_message):
         prompt = f"""You are an intent classifier for a personal assistant.
         Available intents: weather, news, stock, crypto, gold,punchin, punchout, leave, general, reminder, note, todo, chat.
         Rules
@@ -194,6 +194,9 @@ Current User Message:
             print(f"GEMINI ERROR: {e}")
             return "chat"
 
+    
+
+    
         
 
 
