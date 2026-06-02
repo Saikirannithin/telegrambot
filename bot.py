@@ -404,9 +404,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "rain",
             "climate",
             "forecast"
-            logger.info("WEATHER INTENT DETECTED")
+            
             
             ]):
+            logger.info("WEATHER INTENT DETECTED")
             data = get_weather()
 
             if "error" in data:
