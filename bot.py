@@ -392,10 +392,61 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     # Get chat history for context
     history = get_chat_history(user_id)
+    text_lower = text.lower()
+
+    try: 
+        # Weather Intent 
+        if any(word in text_lower for word in [
+            "weather",
+            "temperature",
+            "rain",
+            "climate",
+            "forecast"
+            
+            ]):
+            data = get_weather()
+
+            if "error" in data:
+                response = f"Weather error: {data['error']}"
+
+            else:
+                raw = (
+                    f"Temperature: {data.get('temp')}°C, "
+                    f"Humidity: {data.get('humidity')}%, "
+                    f"{data.get('emoji')}"
+                    )
+                response = clean_response(raw, "weather", name)
+
+                    # Punch In Intent
+        elif any(word in text_lower for word in [
+            "punch in",
+            "check in",
+            "start work",
+            "begin shift"
+        ]):
+            await punchin(update, context)
+            return
+        
+        #Punch Out Intent
+        elif any(word in text_lower for word in [
+            "punch out",
+            "check out",
+            "end work",
+            "finish shift"
+        ]):
+            await punchout(update, context)
+            return
+        
+        #Normal AI Chat
+        else:
+            response = chat_with_ai(text, name, history)
+
+
+
+
     
     # Use AI for response (if OpenAI key is configured)
-    try:
-        response = chat_with_ai(text, name, history)
+   
         
     except Exception as e:
         logger.error(f"AI error: {e}")
