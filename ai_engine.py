@@ -233,7 +233,7 @@ def extract_preferences(message):
             response = model.generate_content(prompt)
             text = response.text.strip()
 
-            if text.startswith("```json")
+            if text.startswith("```json"):
                 text = text.replace(       "```json", "").replace("```", "").strip()
 
                 return json.loads(text)
