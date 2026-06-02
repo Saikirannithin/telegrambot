@@ -185,27 +185,35 @@ def save_preferences(user_id, prefs):
     try:
         conn=get_db()
         c = conn.cursor()
-
         c.execute( """
                   INSERT INTO user_preferences(user_id)
                   VALUES (%s)
-                    ON CONFLICT (user_id) DO NOTHING
-        """, (user_id,) )
+                  ON CONFLICT (user_id) DO NOTHING
+                  """, (user_id,) )
 
-        allowed_fields = ["profession", "city", "work_start", "interests", "stocks", "crypto", "daily_briefing", "preferred_briefing_time"]
+        allowed_fields = [
+            "profession",
+            "city", 
+            "work_start", 
+            "interests", 
+            "stocks", 
+            "crypto", 
+            "daily_briefing",
+            "preferred_briefing_time"
+            ]
 
         for key, value in prefs.items():
             if key in allowed_fields and value is not None:
                 c.execute(
-                    f"UPDATE user_preferences SET {key} = %s WHERE user_id = %s, 
+                    f"UPDATE user_preferences SET {key} = %s WHERE user_id = %s", 
                     (str(value), user_id)
-                     )
+                    )
                 
-         conn.commit()
-         conn.close()
+        conn.commit()
+        conn.close()
 
-         except Exception as e:
-                print(f"Save PREF ERROR: {e}")
+    except Exception as e:
+        print(f"Save PREF ERROR: {e}")
 
                     
         
