@@ -60,7 +60,7 @@ def update_work_start(user_id, work_start):
         conn.close()
     except Exception as e:
         print(f"Error updating work start: {e}")
-        
+
 
 
 
@@ -154,15 +154,33 @@ def init_db():
     c.execute("""
     CREATE TABLE IF NOT EXISTS user_preferences (
          user_id BIGINT PRIMARY KEY,
+         profession TEXT,
+         city TEXT,
          work_start TEXT,
          interests TEXT,
          stocks TEXT,
          crypto TEXT,
          daily_briefing BOOLEAN DEFAULT FALSE,
+         preferred_briefing_time TEXT DEFAULT '08:00',
          onboarding_complete BOOLEAN DEFAULT FALSE,
          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
+    try:
+        c.execute("ALTER TABLE user_preferences ADD COLUMN profession TEXT")
+    except:
+        pass
+
+    try:
+        c.execute("ALTER TABLE user_preferences ADD COLUMN city TEXT")
+    except:
+        pass
+    try:
+        c.execute("ALTER TABLE user_preferences ADD COLUMN preferred_briefing_time TEXT DEFAULT '08:00'")
+    except:
+        pass
+    
 
         
         
