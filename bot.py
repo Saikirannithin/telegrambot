@@ -399,6 +399,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try: 
         # Weather Intent 
         if intent == "weather":
+            logger.info("WEATHER INTENT DETECTED")
             data = get_weather()
 
             if "error" in data:
@@ -424,6 +425,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         #Normal AI Chat
         else:
+            logger.info("GENERAL CHAT INTENT") 
             response = chat_with_ai(text, name, history)
 
 
