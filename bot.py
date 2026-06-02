@@ -393,6 +393,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Get chat history for context
     history = get_chat_history(user_id)
     text_lower = text.lower()
+    logger.info(f"USER MESSAGE: {text}")
+
 
     try: 
         # Weather Intent 
@@ -402,6 +404,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "rain",
             "climate",
             "forecast"
+            logger.info("WEATHER INTENT DETECTED")
             
             ]):
             data = get_weather()
