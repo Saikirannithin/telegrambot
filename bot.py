@@ -108,7 +108,7 @@ def get_user(user_id):
         if not conn:
             return None
         c = conn.cursor()
-        c.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
+        c.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
         user = c.fetchone()
         conn.close()
         return user
@@ -122,8 +122,10 @@ def add_user(user_id, username, first_name):
         if not conn:
             return
         c = conn.cursor()
-        c.execute("INSERT OR IGNORE INTO users (user_id, username, first_name) VALUES (?, ?, ?)",
-                  (user_id, username, first_name))
+        c.execute("""INSERT INTO users (user_id, username, first_name)
+                  VALUES (%s, %s, %s)
+                  ON CONFLICT (user_id) DO NOTHING
+                  """,(user_id, username, first_name))
         conn.commit()
         conn.close()
     except Exception as e:
@@ -135,7 +137,7 @@ def check_activity_limit(user_id):
         if not conn:
             return True, 0
         c = conn.cursor()
-        c.execute("SELECT activity_count FROM users WHERE user_id = ?", (user_id,))
+        c.execute("SELECT activity_count FROM users WHERE user_id = %s", (user_id,))
         result = c.fetchone()
         conn.close()
         
@@ -157,7 +159,7 @@ def increment_activity(user_id):
         if not conn:
             return
         c = conn.cursor()
-        c.execute("UPDATE users SET activity_count = activity_count + 1 WHERE user_id = ?", (user_id,))
+        c.execute("UPDATE users SET activity_count = activity_count + 1 WHERE user_id = %s", (user_id,))
         conn.commit()
         conn.close()
     except Exception as e:
@@ -178,6 +180,22 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     user = update.effective_user
     user_id = user.id
+    if user_id == ADMIN_ID:
+            conn = get_db()
+            c = conn.cursor()
+
+            c.execute("""
+                      INSERT INTO users
+                      (user_id, username, first_name, status)
+                      VALUES (%s, %s, %s, 'approved')
+                      ON CONFLICT (user_id)
+                      DO UPDATE SET status='approved'
+                      """, (user_id, user.username, user.first_name))
+            conn.commit()
+            conn.close()
+
+
+
     
     db_user = get_user(user_id)
     
@@ -230,7 +248,7 @@ async def approve(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("❌ Database error!")
             return
         c = conn.cursor()
-        c.execute("UPDATE users SET status = 'approved' WHERE user_id = ?", (user_id,))
+        c.execute("UPDATE users SET status = 'approved' WHERE user_id = %s", (user_id,))
         conn.commit()
         conn.close()
         
@@ -273,8 +291,12 @@ async def zinghr_setup(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("❌ Database error!")
             return
         c = conn.cursor()
-        c.execute("INSERT OR REPLACE INTO zinghr_users (user_id, employee_code) VALUES (?, ?)",
-                  (user_id, code))
+        c.execute("""
+                  INSERT INTO zinghr_users (user_id, employee_code)
+                  VALUES (%s, %s) 
+                  ON CONFLICT (user_id)     
+                  DO UPDATE SET employee_code = EXCLUDED.employee_code 
+                  """,(user_id, code))
         conn.commit()
         conn.close()
         
@@ -295,7 +317,7 @@ async def punchin(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("❌ Database error!")
             return
         c = conn.cursor()
-        c.execute("SELECT employee_code FROM zinghr_users WHERE user_id = ?", (user_id,))
+        c.execute("SELECT employee_code FROM zinghr_users WHERE user_id = %s", (user_id,))
         result = c.fetchone()
         conn.close()
         
@@ -327,7 +349,7 @@ async def punchout(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("❌ Database error!")
             return
         c = conn.cursor()
-        c.execute("SELECT employee_code FROM zinghr_users WHERE user_id = ?", (user_id,))
+        c.execute("SELECT employee_code FROM zinghr_users WHERE user_id = %s", (user_id,))
         result = c.fetchone()
         conn.close()
         
@@ -374,6 +396,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Use AI for response (if OpenAI key is configured)
     try:
         response = chat_with_ai(text, name, history)
+        
     except Exception as e:
         logger.error(f"AI error: {e}")
         logger.exception("AI error")
