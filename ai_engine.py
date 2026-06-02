@@ -1,7 +1,8 @@
-print("GEMINI KEY EXISTS:", bool(GEMINI_API_KEY))
-print("GEMINI KEY LENGTH:", len(GEMINI_API_KEY) if GEMINI_API_KEY else 0)
 import google.generativeai as genai
 from config import GEMINI_API_KEY
+
+print("GEMINI KEY EXISTS:", bool(GEMINI_API_KEY))
+print("GEMINI KEY LENGTH:", len(GEMINI_API_KEY) if GEMINI_API_KEY else 0)  
 
 genai.configure(api_key=GEMINI_API_KEY)
 
