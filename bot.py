@@ -377,7 +377,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"AI error: {e}")
         logger.exception("AI error")
-    response = f"AI ERROR: {str(e)}"
+        response = f"AI ERROR: {str(e)}"
     # Log chat
     log_chat(user_id, text, response)
     
