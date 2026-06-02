@@ -1,3 +1,5 @@
+print("GEMINI KEY EXISTS:", bool(GEMINI_API_KEY))
+print("GEMINI KEY LENGTH:", len(GEMINI_API_KEY) if GEMINI_API_KEY else 0)
 import google.generativeai as genai
 from config import GEMINI_API_KEY
 
@@ -72,4 +74,4 @@ Current User Message:
 
     except Exception as e:
         print(f"GEMINI ERROR: {e}")
-        return f"Sorry {user_name}, I'm having trouble thinking right now. Can you try again?"
+        return f"GEMINI ERROR: {str(e)}"
