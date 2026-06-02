@@ -1,4 +1,7 @@
+from langsmith import expect
+
 import google.generativeai as genai
+import json
 from config import GEMINI_API_KEY
 
 print("GEMINI KEY EXISTS:", bool(GEMINI_API_KEY))
@@ -194,7 +197,51 @@ def detect_intent(user_message):
             print(f"GEMINI ERROR: {e}")
             return "chat"
 
-    
+
+def extract_preferences(message):
+        prompt = f"""
+        You are extracting user preferences.
+        Return ONLY valid JSON.
+        Schema:
+        {{
+        "profession": null,
+        "city": null,
+        "work_start": null,
+        "interests": null,
+        "stocks": null,
+        "crypto": null,
+        "daily_briefing": null
+        }}
+
+        Examples:
+        "I work in recruitment and follow AI news"
+        {{
+        "profession":"Recruitment",
+        "city":null,
+        "work_start":null,
+        "interests":"AI",
+        "stocks":null,
+        "crypto":null,
+        "daily_briefing":null
+        }}
+
+        User Message:
+        {message}
+        """
+
+        try:
+            response = model.generate_content(prompt)
+            text = response.text.strip()
+
+            if text.startswith("```json")
+                text = text.replace(       "```json", "").replace("```", "").strip()
+
+                return json.loads(text)
+        except Exception as e:
+                print(f"PREFERENCE ERROR: {e}")
+                return None
+
+
 
     
         
