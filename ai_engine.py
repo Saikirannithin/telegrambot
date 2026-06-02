@@ -1,5 +1,3 @@
-from langsmith import expect
-
 import google.generativeai as genai
 import json
 from config import GEMINI_API_KEY
