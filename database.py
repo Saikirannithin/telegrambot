@@ -8,6 +8,63 @@ def get_db():
     return psycopg2.connect(DATABASE_URL)
 
 
+def create_user_preferences(user_id):
+    try:
+        conn = get_db()
+        c = conn.cursor()
+
+        c.execute( """
+        INSERT INTO user_preferences (user_id)
+        VALUES (%s)
+        ON CONFLICT (user_id)
+        DO NOTHING
+        """, (user_id,) )
+
+        conn.commit()
+        conn.close()
+
+    except Exception as e:
+        print(f"Error creating user preferences: {e}")
+
+
+def get_user_preferences(user_id):
+    try:
+        conn =get_db()
+        c = conn.cursor()
+
+        c.execute( """
+                SELECT *
+                  FROM user_preferences
+                    WHERE user_id = %s
+                """, (user_id,) )
+        result = c.fetchone()
+        conn.close()
+
+        return result
+    except Exception as e:
+        print(f"Error getting user preferences: {e}")
+        return None
+    
+
+def update_work_start(user_id, work_start):
+    try:
+        conn=get_db()
+        c = conn.cursor()   
+
+        c.execute( """
+        UPDATE user_preferences
+        SET work_start = %s
+        WHERE user_id = %s
+        """, (work_start, user_id) )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error updating work start: {e}")
+        
+
+
+
+
 def init_db():
     conn = get_db()
     c = conn.cursor()
@@ -93,6 +150,25 @@ def init_db():
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS user_preferences (
+         user_id BIGINT PRIMARY KEY,
+         work_start TEXT,
+         interests TEXT,
+         stocks TEXT,
+         crypto TEXT,
+         daily_briefing BOOLEAN DEFAULT FALSE,
+         onboarding_complete BOOLEAN DEFAULT FALSE,
+         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+        
+        
+            
+
+
 
     conn.commit()
     conn.close()
