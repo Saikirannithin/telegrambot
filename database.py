@@ -1,17 +1,20 @@
-import sqlite3
-from datetime import datetime
+import os
+import psycopg2
 
-DB_PATH = "bot_data.db"
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+
+def get_db():
+    return psycopg2.connect(DATABASE_URL)
 
 
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = get_db()
     c = conn.cursor()
 
-    # Users table
     c.execute("""
     CREATE TABLE IF NOT EXISTS users (
-        user_id INTEGER PRIMARY KEY,
+        user_id BIGINT PRIMARY KEY,
         username TEXT,
         first_name TEXT,
         status TEXT DEFAULT 'pending',
@@ -23,21 +26,19 @@ def init_db():
     )
     """)
 
-    # Chat history
     c.execute("""
     CREATE TABLE IF NOT EXISTS chat_history (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
+        id SERIAL PRIMARY KEY,
+        user_id BIGINT,
         message TEXT,
         response TEXT,
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
 
-    # Briefing preferences
     c.execute("""
     CREATE TABLE IF NOT EXISTS briefing_settings (
-        user_id INTEGER PRIMARY KEY,
+        user_id BIGINT PRIMARY KEY,
         weather INTEGER DEFAULT 1,
         news INTEGER DEFAULT 1,
         custom_news_keywords TEXT,
@@ -53,21 +54,19 @@ def init_db():
     )
     """)
 
-    # ZingHR mapping
     c.execute("""
     CREATE TABLE IF NOT EXISTS zinghr_users (
-        user_id INTEGER PRIMARY KEY,
+        user_id BIGINT PRIMARY KEY,
         employee_code TEXT,
         subscription_name TEXT,
         api_token TEXT
     )
     """)
 
-    # Reminders
     c.execute("""
     CREATE TABLE IF NOT EXISTS reminders (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
+        id SERIAL PRIMARY KEY,
+        user_id BIGINT,
         text TEXT,
         remind_at TIMESTAMP,
         type TEXT DEFAULT 'time',
@@ -76,21 +75,19 @@ def init_db():
     )
     """)
 
-    # Notes
     c.execute("""
     CREATE TABLE IF NOT EXISTS notes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
+        id SERIAL PRIMARY KEY,
+        user_id BIGINT,
         text TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
     """)
 
-    # Todos
     c.execute("""
     CREATE TABLE IF NOT EXISTS todos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
+        id SERIAL PRIMARY KEY,
+        user_id BIGINT,
         text TEXT,
         done INTEGER DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -101,24 +98,20 @@ def init_db():
     conn.close()
 
 
-def get_db():
-    return sqlite3.connect(DB_PATH)
-
-
 # =========================
-# CHAT HISTORY FUNCTIONS
+# CHAT HISTORY
 # =========================
 
 def log_chat(user_id, message, response):
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db()
         c = conn.cursor()
 
         c.execute(
             """
             INSERT INTO chat_history
             (user_id, message, response)
-            VALUES (?, ?, ?)
+            VALUES (%s, %s, %s)
             """,
             (user_id, message, response)
         )
@@ -132,16 +125,16 @@ def log_chat(user_id, message, response):
 
 def get_chat_history(user_id, limit=5):
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db()
         c = conn.cursor()
 
         c.execute(
             """
             SELECT message, response
             FROM chat_history
-            WHERE user_id = ?
+            WHERE user_id = %s
             ORDER BY id DESC
-            LIMIT ?
+            LIMIT %s
             """,
             (user_id, limit)
         )
@@ -164,13 +157,9 @@ def get_chat_history(user_id, limit=5):
         return []
 
 
-# =========================
-# ACTIVITY RESET
-# =========================
-
 def reset_daily_activity():
     try:
-        conn = sqlite3.connect(DB_PATH)
+        conn = get_db()
         c = conn.cursor()
 
         c.execute("""
@@ -186,5 +175,4 @@ def reset_daily_activity():
         print(f"Activity reset error: {e}")
 
 
-# Initialize database
 init_db()
