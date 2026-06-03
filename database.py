@@ -201,6 +201,9 @@ def save_preferences(user_id, prefs):
             "daily_briefing",
             "preferred_briefing_time"
             ]
+        print(f"SAVING FOR USER: {user_id}")
+        print(f"PREFS: {prefs}")
+
 
         for key, value in prefs.items():
             if key in allowed_fields and value is not None:

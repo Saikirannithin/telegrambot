@@ -34,7 +34,9 @@ try:
     get_db,
     init_db,
     get_chat_history,
-    log_chat
+    log_chat,
+    save_preferences
+
 )
     logger.info("✅ Database loaded")
 except Exception as e:
@@ -43,7 +45,7 @@ except Exception as e:
     def init_db(): pass
 
 try:
-    from ai_engine import(clean_response, chat_with_ai, detect_intent) 
+    from ai_engine import(clean_response, chat_with_ai, detect_intent, extract_preferences) 
     logger.info("✅ AI engine loaded")
 except Exception as e:
     logger.error(f"❌ AI engine error: {e}")
@@ -379,6 +381,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     name = update.effective_user.first_name
     text = update.message.text
+
+    prefs = extract_preferences(text)
+    logger.info(f"EXTRACTED PREFS: {prefs}")
+    if prefs:
+        logger.info("SAVING PREFERENCES")
+        save_preferences(user_id, prefs)
+
+
     
     db_user = get_user(user_id)
     if not db_user or (len(db_user) > 3 and db_user[3] != "approved"):
