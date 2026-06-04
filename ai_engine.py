@@ -88,7 +88,7 @@ def detect_intent(user_message):
     """Classify user intent"""
 
     prompt = f"""
-You are an intent classifier.
+You are an intent classifier for a Personal AI Assistant.
 
 Available intents:
 
@@ -97,19 +97,77 @@ news
 stock
 crypto
 gold
+
 punchin
 punchout
 leave
-reminder
-note
-todo
+
+todo_add
+todo_list
+todo_complete
+todo_delete
+
+meeting_add
+meeting_list
+
+reminder_add
+reminder_list
+
+note_add
+note_list
+
 chat
 
+Examples:
+
+"Will it rain today?"
+weather
+
+"Show me AI news"
+news
+
+"I need to update Wisestep docs tomorrow"
+todo_add
+
+"Add follow up with client to my tasks"
+todo_add
+
+"What are my pending tasks?"
+todo_list
+
+"Show my todos"
+todo_list
+
+"I completed Wisestep documentation"
+todo_complete
+
+"Remove follow up with client"
+todo_delete
+
+"I have a meeting with my manager tomorrow at 2 PM"
+meeting_add
+
+"What meetings do I have?"
+meeting_list
+
+"Remind me to submit appraisal next week"
+reminder_add
+
+"What reminders do I have?"
+reminder_list
+
+"Save this note: client prefers remote hiring"
+note_add
+
+"Show my notes"
+note_list
+
 Rules:
-- Reply ONLY with the intent name.
+- Return ONLY one intent.
 - No explanation.
 - No markdown.
-- One word only.
+- No punctuation.
+- Output must exactly match one of the intent names above.
 
 User Message:
 {user_message}
@@ -133,6 +191,69 @@ User Message:
         traceback.print_exc()
 
         return "chat"
+    
+
+def extract_task_info(user_message):
+
+    prompt = f"""
+Extract task information.
+
+Return ONLY valid JSON.
+
+Schema:
+
+{{
+    "task": "",
+    "due_date": ""
+}}
+
+Examples:
+
+Message:
+I need to update Wisestep docs tomorrow
+
+Response:
+{{
+    "task": "Update Wisestep docs",
+    "due_date": "tomorrow"
+}}
+
+Message:
+Follow up with client next week
+
+Response:
+{{
+    "task": "Follow up with client",
+    "due_date": "next week"
+}}
+
+Message:
+{user_message}
+"""
+
+    try:
+
+        response = model.generate_content(prompt)
+
+        text = response.text.strip()
+
+        if "```json" in text:
+            text = text.replace("```json", "").replace("```", "").strip()
+
+        elif text.startswith("```"):
+            text = text.replace("```", "").strip()
+
+        result = json.loads(text)
+
+        print(f"TASK INFO: {result}")
+
+        return result
+
+    except Exception as e:
+
+        print(f"TASK EXTRACTION ERROR: {e}")
+
+        return None
 
 
 def extract_preferences(message):
@@ -210,3 +331,5 @@ Message:
             pass
 
         return None
+    
+
