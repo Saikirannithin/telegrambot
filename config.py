@@ -12,5 +12,6 @@ ZINGHR_API_TOKEN = os.environ.get("ZINGHR_API_TOKEN", "")
 # APIs
 NEWS_API_KEY = os.environ.get("NEWS_API_KEY", "")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 # Bot Settings
 DAILY_ACTIVITY_LIMIT = 40

@@ -1,7 +1,9 @@
 import google.generativeai as genai
+from groq import Groq
 import json
 import traceback
-from config import GEMINI_API_KEY
+from config import (GEMINI_API_KEY, GROQ_API_KEY)
+
 
 print("GEMINI KEY EXISTS:", bool(GEMINI_API_KEY))
 print("GEMINI KEY LENGTH:", len(GEMINI_API_KEY) if GEMINI_API_KEY else 0)
@@ -10,7 +12,31 @@ genai.configure(api_key=GEMINI_API_KEY)
 
 # Use whichever model is working in your project
 model = genai.GenerativeModel("gemini-3.5-flash")
+groq_client = Groq(
+    api_key=GROQ_API_KEY
+)
 
+def ask_groq(prompt):
+
+    try:
+
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ]
+        )
+
+        return response.choices[0].message.content
+
+    except Exception as e:
+
+        print(f"GROQ ERROR: {e}")
+
+        return None
 
 def clean_response(raw_data, context_type, user_name=""):
     """Polish external API responses"""
@@ -187,7 +213,10 @@ User Message:
         return intent
 
     except Exception as e:
-        print(f"INTENT ERROR: {e}")
+        print(f"GEMINI INTENT FAILED: {e}")
+        result = ask_groq(prompt)
+        if result:
+            return result.strip().lower()
         traceback.print_exc()
 
         return "chat"
@@ -250,6 +279,13 @@ Message:
         return result
 
     except Exception as e:
+        print(f"GEMINI TASK EXTRACTION FAILED: {e}")    
+        result = ask_groq(prompt)
+        if result:
+            try:
+                return json.loads(result)
+            except:
+                pass
 
         print(f"TASK EXTRACTION ERROR: {e}")
 
