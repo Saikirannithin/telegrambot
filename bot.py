@@ -374,6 +374,37 @@ async def punchout(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.error(f"Punchout error: {e}")
         await update.message.reply_text(f"❌ Error: {e}")
 
+async def myprofile(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    user_id = update.effective_user.id
+
+    prefs = get_user_preferences(user_id)
+
+    if not prefs:
+        await update.message.reply_text(
+            "👤 I don't know much about you yet.\n\n"
+            "Tell me things like:\n"
+            "• I am a Product Manager\n"
+            "• I live in Hyderabad\n"
+            "• I follow AI and Tech news"
+        )
+        return
+
+    profile = (
+        f"👤 Your Profile\n\n"
+        f"💼 Profession: {prefs[8] or 'Not set'}\n\n"
+        f"📍 City: {prefs[9] or 'Not set'}\n\n"
+        f"⏰ Work Start: {prefs[1] or 'Not set'}\n\n"
+        f"🎯 Interests: {prefs[2] or 'Not set'}\n\n"
+        f"📈 Stocks: {prefs[3] or 'Not set'}\n\n"
+        f"₿ Crypto: {prefs[4] or 'Not set'}\n\n"
+        f"📰 Daily Briefing: {'Enabled' if prefs[5] else 'Disabled'}\n"
+        f"🕗 Briefing Time: {prefs[10] or '08:00'}"
+    )
+
+    await update.message.reply_text(profile)
+
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not telegram_app:
         await update.message.reply_text("❌ Bot not initialized!")
@@ -383,33 +414,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     name = update.effective_user.first_name
     text = update.message.text
 
-    if text.lower() == "/myprofile":
-        prefs = get_user_preferences(user_id)
-
-        if not prefs:
-           await update.message.reply_text(
-            "👤 I don't know much about you yet.\n\n"
-            "Tell me things like:\n"
-            "• I am a Product Manager\n"
-            "• I live in Hyderabad\n"
-            "• I follow AI and Tech news"
-        )
-           return
-        profile = (
-            f"👤 Your Profile\n\n"
-            f"💼 Profession: {prefs[8] or 'Not set'}\n\n"
-            f"📍 City: {prefs[9] or 'Not set'}\n\n"
-            f"⏰ Work Start: {prefs[1] or 'Not set'}\n\n"
-            f"🎯 Interests: {prefs[2] or 'Not set'}\n\n"
-            f"📈 Stocks: {prefs[3] or 'Not set'}\n\n"
-            f"₿ Crypto: {prefs[4] or 'Not set'}\n\n"
-            f"📰 Daily Briefing: {'Enabled' if prefs[5] else 'Disabled'}"   
-            f" 🕗 Briefing Time: {prefs[10] or '08:00'}"
-            )
-
-        await update.message.reply_text(profile)
-        return
-
+    
     prefs = extract_preferences(text)
     logger.info(f"EXTRACTED PREFS: {prefs}")
     if prefs and any(v is not None for v in prefs.values()):
@@ -488,6 +493,7 @@ if telegram_app:
     telegram_app.add_handler(CommandHandler("start", start))
     telegram_app.add_handler(CommandHandler("approve", approve))
     telegram_app.add_handler(CommandHandler("weather", weather_cmd))
+    telegram_app.add_handler(CommandHandler("myprofile", myprofile))
     telegram_app.add_handler(CommandHandler("zinghrsetup", zinghr_setup))
     telegram_app.add_handler(CommandHandler("punchin", punchin))
     telegram_app.add_handler(CommandHandler("punchout", punchout))
