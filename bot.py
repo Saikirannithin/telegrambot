@@ -35,7 +35,8 @@ try:
     init_db,
     get_chat_history,
     log_chat,
-    save_preferences
+    save_preferences,
+    get_user_preferences
 
 )
     logger.info("✅ Database loaded")
@@ -382,9 +383,36 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     name = update.effective_user.first_name
     text = update.message.text
 
+    if text.lower() == "/myprofile":
+        prefs = get_user_preferences(user_id)
+
+        if not prefs:
+           await update.message.reply_text(
+            "👤 I don't know much about you yet.\n\n"
+            "Tell me things like:\n"
+            "• I am a Product Manager\n"
+            "• I live in Hyderabad\n"
+            "• I follow AI and Tech news"
+        )
+           return
+        profile = (
+            f"👤 Your Profile\n\n"
+            f"💼 Profession: {prefs[8] or 'Not set'}\n\n"
+            f"📍 City: {prefs[9] or 'Not set'}\n\n"
+            f"⏰ Work Start: {prefs[1] or 'Not set'}\n\n"
+            f"🎯 Interests: {prefs[2] or 'Not set'}\n\n"
+            f"📈 Stocks: {prefs[3] or 'Not set'}\n\n"
+            f"₿ Crypto: {prefs[4] or 'Not set'}\n\n"
+            f"📰 Daily Briefing: {'Enabled' if prefs[5] else 'Disabled'}"   
+            f" 🕗 Briefing Time: {prefs[10] or '08:00'}"
+            )
+
+        await update.message.reply_text(profile)
+        return
+
     prefs = extract_preferences(text)
     logger.info(f"EXTRACTED PREFS: {prefs}")
-    if prefs:
+    if prefs and any(v is not None for v in prefs.values()):
         logger.info("SAVING PREFERENCES")
         save_preferences(user_id, prefs)
 
