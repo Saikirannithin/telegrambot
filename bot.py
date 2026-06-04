@@ -403,6 +403,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Get chat history for context
     history = get_chat_history(user_id)
     intent = detect_intent(text)
+    logger.info(f"INTENT DETECTED: {intent}")
     logger.info(f"USER MESSAGE: {text}")
 
 

@@ -1,5 +1,6 @@
 import google.generativeai as genai
 import json
+import traceback
 from config import GEMINI_API_KEY
 
 print("GEMINI KEY EXISTS:", bool(GEMINI_API_KEY))
@@ -8,7 +9,7 @@ print("GEMINI KEY LENGTH:", len(GEMINI_API_KEY) if GEMINI_API_KEY else 0)
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Use whichever model is working in your project
-model = genai.GenerativeModel("gemini-2.5-pro")
+model = genai.GenerativeModel("gemini-3.5-flash")
 
 
 def clean_response(raw_data, context_type, user_name=""):
@@ -79,6 +80,7 @@ Current User Message:
 
     except Exception as e:
         print(f"GEMINI ERROR: {e}")
+        traceback.print_exc()
         return f"Sorry {user_name}, I'm having trouble thinking right now. Please try again."
 
 
@@ -114,7 +116,11 @@ User Message:
 """
 
     try:
+        print("CALLING GEMINI FOR INTENT")
+
         response = model.generate_content(prompt)
+
+        print("INTENT RESPONSE RECEIVED")
 
         intent = response.text.strip().lower()
 
@@ -124,6 +130,8 @@ User Message:
 
     except Exception as e:
         print(f"INTENT ERROR: {e}")
+        traceback.print_exc()
+
         return "chat"
 
 
@@ -171,7 +179,9 @@ Message:
 """
 
     try:
+        print("CALLING GEMINI FOR PREFERENCES")
         response = model.generate_content(prompt)
+        print("PREFERENCE RESPONSE RECEIVED")
 
         text = response.text.strip()
 
@@ -179,6 +189,9 @@ Message:
 
         if text.startswith("```json"):
             text = text.replace("```json", "").replace("```", "").strip()
+
+        elif text.startswith("```"):
+            text = text.replace("```", "").strip()
 
         result = json.loads(text)
 
@@ -189,6 +202,7 @@ Message:
     except Exception as e:
 
         print(f"PREFERENCE ERROR: {e}")
+        traceback.print_exc()
 
         try:
             print(f"RAW RESPONSE: {response.text}")
