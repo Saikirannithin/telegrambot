@@ -36,7 +36,10 @@ try:
     get_chat_history,
     log_chat,
     save_preferences,
-    get_user_preferences
+    get_user_preferences,
+    add_todo,
+    get_todos,
+    complete_todo
 
 )
     logger.info("✅ Database loaded")
@@ -46,7 +49,7 @@ except Exception as e:
     def init_db(): pass
 
 try:
-    from ai_engine import(clean_response, chat_with_ai, detect_intent, extract_preferences) 
+    from ai_engine import(clean_response, chat_with_ai, detect_intent, extract_preferences, extract_task_info) 
     logger.info("✅ AI engine loaded")
 except Exception as e:
     logger.error(f"❌ AI engine error: {e}")
@@ -466,6 +469,24 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif intent == "punchout":
             await punchout(update, context)
             return
+        #todo intent
+
+        elif intent == "todo_add":
+            task_info = extract_task_info(text)
+            logger.info(f"TASK INFO: {task_info}")
+            
+            if task_info:
+                 task = task_info.get("task")
+                 if task:
+                     add_todo(user_id, task)
+                     await update.message.reply_text(
+                    f"✅ Added to your todo list:\n\n{task}"
+                     )  
+                 else:  
+                   await update.message.reply_text("❌ Could not Understand task.")
+            else:
+                 await update.message.reply_text("❌ Could not extarct task.")
+            return
         
         #Normal AI Chat
         else:
@@ -558,6 +579,7 @@ def init_bot():
         logger.info(f"🚀 Webhook set to: {WEBHOOK_URL}/webhook")
     except Exception as e:
         logger.error(f"Init error: {e}")
+
 
 init_bot()
 

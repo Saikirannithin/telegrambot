@@ -304,4 +304,76 @@ def reset_daily_activity():
         print(f"Activity reset error: {e}")
 
 
+
+def add_todo(user_id, task):
+    try:
+        conn = get_db()
+        c = conn.cursor()
+
+        c.execute(
+            """
+            INSERT INTO todos (user_id, text)
+            VALUES (%s, %s)
+            """,
+            (user_id, task)
+        )
+
+        conn.commit()
+        conn.close()
+
+        return True
+
+    except Exception as e:
+        print(f"ADD TODO ERROR: {e}")
+        return False
+
+
+def get_todos(user_id):
+    try:
+        conn = get_db()
+        c = conn.cursor()
+
+        c.execute(
+            """
+            SELECT id, text
+            FROM todos
+            WHERE user_id = %s
+            AND done = 0
+            ORDER BY created_at DESC
+            """,
+            (user_id,)
+        )
+
+        rows = c.fetchall()
+
+        conn.close()
+
+        return rows
+
+    except Exception as e:
+        print(f"GET TODO ERROR: {e}")
+        return []
+
+
+def complete_todo(user_id, task):
+    try:
+        conn = get_db()
+        c = conn.cursor()
+
+        c.execute(
+            """
+            UPDATE todos
+            SET done = 1
+            WHERE user_id = %s
+            AND LOWER(text) LIKE LOWER(%s)
+            """,
+            (user_id, f"%{task}%")
+        )
+
+        conn.commit()
+        conn.close()
+
+    except Exception as e:
+        print(f"COMPLETE TODO ERROR: {e}")
+
 init_db()
