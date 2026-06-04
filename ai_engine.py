@@ -1,4 +1,5 @@
 import google.generativeai as genai
+from google import genai
 from groq import Groq
 import json
 import traceback
