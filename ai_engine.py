@@ -11,7 +11,7 @@ print("GEMINI KEY LENGTH:", len(GEMINI_API_KEY) if GEMINI_API_KEY else 0)
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Use whichever model is working in your project
-model = genai.GenerativeModel("gemini-3.5-flash")
+model = genai.GenerativeModel("Gemma-4-26B")
 groq_client = Groq(
     api_key=GROQ_API_KEY
 )
@@ -106,7 +106,10 @@ Current User Message:
 
     except Exception as e:
         print(f"GEMINI ERROR: {e}")
+        result = ask_groq(prompt)
         traceback.print_exc()
+        if result:
+            return result
         return f"Sorry {user_name}, I'm having trouble thinking right now. Please try again."
 
 
