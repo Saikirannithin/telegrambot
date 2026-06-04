@@ -225,8 +225,6 @@ def save_preferences(user_id, prefs):
 
 
 
-    conn.commit()
-    conn.close()
 
 
 # =========================
