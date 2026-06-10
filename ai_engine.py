@@ -1,9 +1,8 @@
 import google.generativeai as genai
-from google import genai
-from groq import Groq
+from openai import OpenAI
 import json
 import traceback
-from config import (GEMINI_API_KEY, GROQ_API_KEY)
+from config import (GEMINI_API_KEY, NVIDIA_API_KEY)
 
 
 print("GEMINI KEY EXISTS:", bool(GEMINI_API_KEY))
@@ -13,29 +12,33 @@ genai.configure(api_key=GEMINI_API_KEY)
 
 # Use whichever model is working in your project
 model = genai.GenerativeModel("Gemma-4-26B")
-groq_client = Groq(
-    api_key=GROQ_API_KEY
+nvidia_client = OpenAI(
+    base_url="https://integrate.api.nvidia.com/v1",
+    api_key=NVIDIA_API_KEY
 )
 
-def ask_groq(prompt):
+
+def ask_nvidia(prompt):
 
     try:
 
-        response = groq_client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+        completion = nvidia_client.chat.completions.create(
+            model="openai/gpt-oss-20b",
             messages=[
                 {
                     "role": "user",
                     "content": prompt
                 }
-            ]
+            ],
+            temperature=0.3,
+            max_tokens=2000
         )
 
-        return response.choices[0].message.content
+        return completion.choices[0].message.content
 
     except Exception as e:
 
-        print(f"GROQ ERROR: {e}")
+        print(f"NVIDIA ERROR: {e}")
 
         return None
 
@@ -107,9 +110,10 @@ Current User Message:
 
     except Exception as e:
         print(f"GEMINI ERROR: {e}")
-        result = ask_groq(prompt)
+        result = ask_nvidia(prompt)
         traceback.print_exc()
         if result:
+            print("NVIDIA CHAT SUCCESS")
             return result
         return f"Sorry {user_name}, I'm having trouble thinking right now. Please try again."
 
@@ -218,8 +222,10 @@ User Message:
 
     except Exception as e:
         print(f"GEMINI INTENT FAILED: {e}")
-        result = ask_groq(prompt)
+        result = ask_nvidia(prompt)
+
         if result:
+            print(f"NVIDIA INTENT : {result}")
             return result.strip().lower()
         traceback.print_exc()
 
@@ -284,12 +290,13 @@ Message:
 
     except Exception as e:
         print(f"GEMINI TASK EXTRACTION FAILED: {e}")    
-        result = ask_groq(prompt)
+        result = ask_nvidia(prompt)
         if result:
             try:
                 return json.loads(result)
-            except:
-                pass
+            except Exception as json_error:
+                print(f"NVIDIA JSON PARSE ERROR: {json_error}")
+                print(f"NVIDIA RESPONSE: {result}")
 
         print(f"TASK EXTRACTION ERROR: {e}")
 
