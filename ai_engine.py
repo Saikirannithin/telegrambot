@@ -11,7 +11,7 @@ print("GEMINI KEY LENGTH:", len(GEMINI_API_KEY) if GEMINI_API_KEY else 0)
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Use whichever model is working in your project
-model = genai.GenerativeModel("Gemini-2.5-Flash")
+model = genai.GenerativeModel("gemini-1.5-flash")
 nvidia_client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
     api_key=NVIDIA_API_KEY
@@ -222,13 +222,16 @@ User Message:
 
     except Exception as e:
         print(f"GEMINI INTENT FAILED: {e}")
-        result = ask_nvidia(prompt)
+        try:
+            result = ask_nvidia(prompt)
 
-        if result:
-            print(f"NVIDIA INTENT : {result}")
-            return result.strip().lower()
-        traceback.print_exc()
-
+            if result:
+                intent = result.strip().lower()
+                print(f"NVIDIA INTENT: {intent}")
+                return intent
+        except Exception as nvidia_error:    
+            print(f"NVIDIA INTENT ERROR: {nvidia_error}")
+            traceback.print_exc()   
         return "chat"
     
 
