@@ -11,7 +11,7 @@ print("GEMINI KEY LENGTH:", len(GEMINI_API_KEY) if GEMINI_API_KEY else 0)
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Use whichever model is working in your project
-model = genai.GenerativeModel("Gemma-4-26B")
+model = genai.GenerativeModel("Gemini-2.5-Flash")
 nvidia_client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
     api_key=NVIDIA_API_KEY
