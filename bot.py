@@ -566,7 +566,13 @@ def process_update_async(update):
         future.result(timeout=30)
 
     except Exception as e:
+
+        import traceback
+
         logger.error(f"PROCESS UPDATE ERROR: {e}")
+        logger.error(traceback.format_exc())
+
+
 
 # --- Webhook Routes ---
 @app.route("/webhook", methods=["POST"])
@@ -650,4 +656,13 @@ def init_bot():
 init_bot()
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
+    threading.Thread(
+        target=start_bot_loop,
+        daemon=True
+    ).start()
+
+    app.run(
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 5000))
+    )
