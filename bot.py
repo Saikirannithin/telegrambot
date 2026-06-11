@@ -572,17 +572,6 @@ def process_update_async(update):
         BOT_LOOP
     )
 
-    try:
-        future.result(timeout=30)
-
-    except Exception as e:
-
-        import traceback
-
-        logger.error(f"PROCESS UPDATE ERROR: {e}")
-        logger.error(traceback.format_exc())
-
-
 
 # --- Webhook Routes ---
 @app.route("/webhook", methods=["POST"])
