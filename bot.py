@@ -2,6 +2,7 @@ import os
 import logging
 import asyncio
 import threading
+import concurrent.futures
 from datetime import datetime, timedelta
 from flask import Flask, request
 
@@ -10,6 +11,8 @@ from telegram.ext import (
     Application, CommandHandler, MessageHandler, 
     filters, ContextTypes
 )
+
+BOT_LOOP = asyncio.new_event_loop()
 
 # --- Setup logging first ---
 logging.basicConfig(level=logging.INFO)
@@ -554,11 +557,16 @@ if telegram_app:
 
 def process_update_async(update):
 
-    async def runner():
-        await telegram_app.process_update(update)
+    future = asyncio.run_coroutine_threadsafe(
+        telegram_app.process_update(update),
+        BOT_LOOP
+    )
 
-    asyncio.run(runner())
+    try:
+        future.result(timeout=30)
 
+    except Exception as e:
+        logger.error(f"PROCESS UPDATE ERROR: {e}")
 
 # --- Webhook Routes ---
 @app.route("/webhook", methods=["POST"])
