@@ -126,6 +126,9 @@ You are an intent classifier for a Personal AI Assistant.
 
 Available intents:
 
+profile_update
+profile_show
+
 weather
 news
 stock
@@ -195,6 +198,18 @@ note_add
 
 "Show my notes"
 note_list
+
+"I am a product manager"
+profile_update
+
+"I live in Hyderabad"
+profile_update
+
+"My interests are cooking"
+profile_update
+
+"Show my profile"
+profile_show
 
 Rules:
 - Return ONLY one intent.
@@ -371,15 +386,32 @@ Message:
         return result
 
     except Exception as e:
-
-        print(f"PREFERENCE ERROR: {e}")
+        print(f"GEMINI PREF FAILED: {e}")
         traceback.print_exc()
 
         try:
-            print(f"RAW RESPONSE: {response.text}")
-        except:
-            pass
+            text = ask_nvidia(prompt)
 
-        return None
-    
+            if not text:
+                return None
+
+            print(f"NVIDIA RESPONSE: {text}")
+
+            if text.startswith("```json"):
+                text = text.replace("```json", "").replace("```", "").strip()
+
+            elif text.startswith("```"):
+                text = text.replace("```", "").strip()
+
+            result = json.loads(text)
+
+            print(f"NVIDIA PREFS: {result}")
+
+            return result
+
+        except Exception as nvidia_error:
+            print(f"NVIDIA PREF ERROR: {nvidia_error}")
+            traceback.print_exc()
+
+            return None
 
