@@ -11,7 +11,7 @@ print("GEMINI KEY LENGTH:", len(GEMINI_API_KEY) if GEMINI_API_KEY else 0)
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Use whichever model is working in your project
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-3.5-flash")
 nvidia_client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
     api_key=NVIDIA_API_KEY
@@ -310,8 +310,15 @@ Message:
         print(f"GEMINI TASK EXTRACTION FAILED: {e}")    
         result = ask_nvidia(prompt)
         if result:
+            if "```json" in result:
+                result = result.replace("```json", "").replace("```", "").strip()
+            elif result.startswith("```"):
+                result = result.replace("```", "").strip()
             try:
-                return json.loads(result)
+                parsed = json.loads(result)
+                print(f"NVIDIA TASK INFO: {parsed}")
+                return parsed
+            
             except Exception as json_error:
                 print(f"NVIDIA JSON PARSE ERROR: {json_error}")
                 print(f"NVIDIA RESPONSE: {result}")

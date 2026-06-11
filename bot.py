@@ -465,32 +465,51 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await punchin(update, context)
             return
         
-        #Punch Out Intent
+        # Punch Out Intent
         elif intent == "punchout":
             await punchout(update, context)
             return
-        #todo intent
 
+        # Todo intent
         elif intent == "todo_add":
             task_info = extract_task_info(text)
             logger.info(f"TASK INFO: {task_info}")
-            
+
             if task_info:
-                 task = task_info.get("task")
-                 if task:
-                     add_todo(user_id, task)
-                     await update.message.reply_text(
-                    f"✅ Added to your todo list:\n\n{task}"
-                     )  
-                 else:  
-                   await update.message.reply_text("❌ Could not Understand task.")
+                task = task_info.get("task")
+                if task:
+                    add_todo(user_id, task)
+                    await update.message.reply_text(
+                        f"✅ Added to your todo list:\n\n{task}"
+                    )
+                else:
+                    await update.message.reply_text("❌ Could not Understand task.")
             else:
-                 await update.message.reply_text("❌ Could not extarct task.")
+                await update.message.reply_text("❌ Could not extract task.")
             return
-        
-        #Normal AI Chat
+
+        elif intent == "profile_show":
+            prefs = get_user_preferences(user_id)
+            if not prefs:
+                await update.message.reply_text("👤 I don't know much about you yet.")
+                return
+            profile = (
+                f"👤 Your Profile\n\n"
+                f"💼 Profession: {prefs[8] or 'Not set'}\n\n"
+                f"📍 City: {prefs[9] or 'Not set'}\n\n"
+                f"⏰ Work Start: {prefs[1] or 'Not set'}\n\n"
+                f"🎯 Interests: {prefs[2] or 'Not set'}\n\n"
+                f"📈 Stocks: {prefs[3] or 'Not set'}\n\n"
+                f"₿ Crypto: {prefs[4] or 'Not set'}\n\n"
+                f"📰 Daily Briefing: {'Enabled' if prefs[5] else 'Disabled'}\n"
+                f"🕗 Briefing Time: {prefs[10] or '08:00'}"
+            )
+            await update.message.reply_text(profile)
+            return
+
+        # Normal AI Chat
         else:
-            logger.info("GENERAL CHAT INTENT") 
+            logger.info("GENERAL CHAT INTENT")
             response = chat_with_ai(text, name, history)
 
 
