@@ -13,9 +13,6 @@ from telegram.ext import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# --- Create event loop at module level for async operations ---
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
 
 # --- Safe config loading ---
 try:
@@ -487,6 +484,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             else:
                 await update.message.reply_text("❌ Could not extract task.")
             return
+        elif intent == "todo_list":
+            todos = get_todos(user_id)
+            if not todos:
+                await update.message.reply_text("✅ Your todo list is empty!")
+                return
+            
+            message = "📝 Your Todo List:\n\n"
+            for todo in todos:
+                message += f" {todo[2]}\n"
+            await update.message.reply_text(msg)
+            return
 
         elif intent == "profile_show":
             prefs = get_user_preferences(user_id)
@@ -564,8 +572,7 @@ def webhook():
         try:
 
             logger.info("⚙️ Processing...")
-            logger.info(f"LOOP RUNNING: {loop.is_running()}")
-            loop.run_until_complete(telegram_app.process_update(update))
+            asyncio.run(telegram_app.process_update(update))
             logger.info("✅ Success")
             return "OK", 200
         except Exception as process_error:
@@ -595,8 +602,8 @@ def init_bot():
         return
     
     try:
-        loop.run_until_complete(telegram_app.initialize())
-        loop.run_until_complete(telegram_app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook"))
+        asyncio.run(telegram_app.initialize())
+        asyncio.run(telegram_app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook"))
         logger.info(f"🚀 Webhook set to: {WEBHOOK_URL}/webhook")
     except Exception as e:
         logger.error(f"Init error: {e}")
