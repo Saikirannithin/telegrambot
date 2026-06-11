@@ -593,21 +593,34 @@ def health():
 
 # --- Startup with proper async handling ---
 def init_bot():
+
     if not telegram_app:
         logger.error("❌ Cannot init: telegram_app is None")
         return
-    
+
     if not BOT_TOKEN or BOT_TOKEN == "dummy":
         logger.error("❌ Cannot init: No valid BOT_TOKEN")
         return
-    
-    try:
-        asyncio.run(telegram_app.initialize())
-        asyncio.run(telegram_app.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook"))
-        logger.info(f"🚀 Webhook set to: {WEBHOOK_URL}/webhook")
-    except Exception as e:
-        logger.error(f"Init error: {e}")
 
+    async def startup():
+
+        await telegram_app.initialize()
+
+        await telegram_app.bot.set_webhook(
+            url=f"{WEBHOOK_URL}/webhook"
+        )
+
+    try:
+
+        asyncio.run(startup())
+
+        logger.info(
+            f"🚀 Webhook set to: {WEBHOOK_URL}/webhook"
+        )
+
+    except Exception as e:
+
+        logger.error(f"Init error: {e}")
 
 init_bot()
 
