@@ -14,6 +14,16 @@ from telegram.ext import (
 
 BOT_LOOP = asyncio.new_event_loop()
 
+
+def start_bot_loop():
+    """Start the background asyncio event loop used for processing updates."""
+    try:
+        asyncio.set_event_loop(BOT_LOOP)
+        BOT_LOOP.run_forever()
+    except Exception as e:
+        logger.error(f"Failed to start bot loop: {e}")
+
+
 # --- Setup logging first ---
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
