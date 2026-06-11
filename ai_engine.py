@@ -2,8 +2,10 @@ import google.generativeai as genai
 from openai import OpenAI
 import json
 import traceback
+import os
 from config import (GEMINI_API_KEY, NVIDIA_API_KEY)
 
+USE_GEMINI = os.getenv("USE_GEMINI", "false").lower() == "true"
 
 print("GEMINI KEY EXISTS:", bool(GEMINI_API_KEY))
 print("GEMINI KEY LENGTH:", len(GEMINI_API_KEY) if GEMINI_API_KEY else 0)

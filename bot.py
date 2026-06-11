@@ -1,8 +1,10 @@
 import os
 import logging
 import asyncio
+import threading
 from datetime import datetime, timedelta
 from flask import Flask, request
+
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application, CommandHandler, MessageHandler, 
@@ -547,6 +549,17 @@ if telegram_app:
     telegram_app.add_handler(CommandHandler("punchout", punchout))
     telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
+
+#---async threading to handle loop------
+
+def process_update_async(update):
+
+    async def runner():
+        await telegram_app.process_update(update)
+
+    asyncio.run(runner())
+
+
 # --- Webhook Routes ---
 @app.route("/webhook", methods=["POST"])
 def webhook():
@@ -572,7 +585,11 @@ def webhook():
         try:
 
             logger.info("⚙️ Processing...")
-            asyncio.run(telegram_app.process_update(update))
+            threading.Thread(
+                target=process_update_async,
+                args=(update,),
+                daemon=True
+             ).start()
             logger.info("✅ Success")
             return "OK", 200
         except Exception as process_error:
