@@ -562,7 +562,9 @@ def webhook():
         
         # Process with try-except inside
         try:
+
             logger.info("⚙️ Processing...")
+            logger.info(f"LOOP RUNNING: {loop.is_running()}")
             loop.run_until_complete(telegram_app.process_update(update))
             logger.info("✅ Success")
             return "OK", 200
