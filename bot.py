@@ -653,7 +653,7 @@ def init_bot():
         logger.error(f"Init error: {e}")
 
 
-init_bot()
+
 
 if __name__ == "__main__":
 
@@ -662,7 +662,7 @@ if __name__ == "__main__":
         daemon=True
     ).start()
 
-    
+    init_bot()    
 
     app.run(
         host="0.0.0.0",
