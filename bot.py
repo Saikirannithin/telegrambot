@@ -463,6 +463,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         current_step = request[11]
         logger.info(f"ONBOARDING STEP: {current_step}")
         if current_step == "name":
+            logger.info("PROCESSING NAME STEP")
             update_access_request(user_id, 
                                   "full_name",
                                   text
@@ -472,7 +473,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         
         elif current_step == "profession":
-            update_access_request(user_id, "profession")
+            logger.info("PROCESSING PROFESSION STEP")
+            update_access_request(user_id, "profession", text)
             update_onboarding_step(user_id, "city")
             await update.message.reply_text(
                 "🏙️ Which city are you based in?"
