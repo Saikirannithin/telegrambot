@@ -14,6 +14,16 @@ from telegram.ext import (
 
 BOT_LOOP = asyncio.new_event_loop()
 
+ONBOARDING_STEPS = [
+    "name",
+    "profession",
+    "city",
+    "briefing_time",
+    "interests",
+    "primary_goal",
+    "additional_notes"
+]
+
 
 def start_bot_loop():
     """Start the background asyncio event loop used for processing updates."""
@@ -51,6 +61,7 @@ try:
     get_user_preferences,
     add_todo,
     get_todos,
+    create_access_request,
     complete_todo
 
 )
@@ -219,13 +230,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if not db_user:
         add_user(user_id, user.username, user.first_name)
-        await notify_admin(context.bot, 
-            f"🆕 New user!\nName: {user.first_name}\nID: {user_id}\n/approve {user_id}")
-        
-        await update.message.reply_text(
-            f"👋 Hello {user.first_name}!\n\n"
-            f"⏳ Waiting for admin approval.\n"
-            f"Your ID: {user_id}"
+        create_access_request(user_id)
+
+        await update.message.reply_text
+        (
+            "👋 Welcome to Jarvis!\n\n"
+        "Before I can assist you, I'd like to know a little about you.\n\n"
+        "What should I call you?"
         )
         return
     
