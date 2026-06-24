@@ -566,12 +566,21 @@ if telegram_app:
 #---async threading to handle loop------
 
 def process_update_async(update):
+    try:
 
-    future = asyncio.run_coroutine_threadsafe(
-        telegram_app.process_update(update),
-        BOT_LOOP
-    )
+        future = asyncio.run_coroutine_threadsafe(
+            telegram_app.process_update(update),
+            BOT_LOOP
+        )
 
+        future.result(timeout=30)
+
+    except Exception as e:
+
+        logger.error(f"PROCESS UPDATE ERROR: {e}")
+
+        import traceback
+        logger.error(traceback.format_exc())
 
 # --- Webhook Routes ---
 @app.route("/webhook", methods=["POST"])
@@ -642,7 +651,12 @@ def init_bot():
 
     try:
 
-        asyncio.run(startup())
+        future = asyncio.run_coroutine_threadsafe(
+            startup(),
+            BOT_LOOP
+        )
+
+        future.result(timeout=30)
 
         logger.info(
             f"🚀 Webhook set to: {WEBHOOK_URL}/webhook"
@@ -651,7 +665,6 @@ def init_bot():
     except Exception as e:
 
         logger.error(f"Init error: {e}")
-
 
 
 
