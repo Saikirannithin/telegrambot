@@ -209,7 +209,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     user = update.effective_user
     user_id = user.id
-    if user_id == ADMIN_ID:
+    if False and user_id == ADMIN_ID:
             conn = get_db()
             c = conn.cursor()
 
