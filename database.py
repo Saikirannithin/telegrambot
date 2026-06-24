@@ -376,4 +376,158 @@ def complete_todo(user_id, task):
     except Exception as e:
         print(f"COMPLETE TODO ERROR: {e}")
 
+def is_user_approved(user_id):
+    try:
+        conn = get_db()
+        c = conn.cursor()
+
+        c.execute("""
+            SELECT is_approved
+            FROM users
+            WHERE user_id = %s
+        """, (user_id,))
+
+        row = c.fetchone()
+
+        conn.close()
+
+        if not row:
+            return False
+
+        return row[0]
+
+    except Exception as e:
+        print(f"APPROVAL CHECK ERROR: {e}")
+        return False
+
+def approve_user(user_id, admin_id):
+    try:
+        conn = get_db()
+        c = conn.cursor()
+
+        c.execute("""
+            UPDATE users
+            SET
+                is_approved = TRUE,
+                approved_at = CURRENT_TIMESTAMP,
+                approved_by = %s
+            WHERE user_id = %s
+        """, (admin_id, user_id))
+
+        conn.commit()
+        conn.close()
+
+        return True
+
+    except Exception as e:
+        print(f"APPROVE USER ERROR: {e}")
+        return False
+
+def reject_user(user_id):
+    try:
+        conn = get_db()
+        c = conn.cursor()
+
+        c.execute("""
+            UPDATE access_requests
+            SET status = 'rejected'
+            WHERE telegram_id = %s
+        """, (user_id,))
+
+        conn.commit()
+        conn.close()
+
+        return True
+
+    except Exception as e:
+        print(f"REJECT USER ERROR: {e}")
+        return False
+
+def create_access_request(user_id):
+    try:
+        conn = get_db()
+        c = conn.cursor()
+
+        c.execute("""
+            INSERT INTO access_requests (
+                telegram_id,
+                status,
+                onboarding_step
+            )
+            VALUES (%s, 'pending', 'name')
+            ON CONFLICT DO NOTHING
+        """, (user_id,))
+
+        conn.commit()
+        conn.close()
+
+    except Exception as e:
+        print(f"ACCESS REQUEST ERROR: {e}")
+
+
+#save onboarding #
+def update_access_request(user_id, field, value):
+    try:
+        conn = get_db()
+        c = conn.cursor()
+
+        c.execute(
+            f"""
+            UPDATE access_requests
+            SET {field} = %s,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE telegram_id = %s
+            """,
+            (value, user_id)
+        )
+
+        conn.commit()
+        conn.close()
+
+    except Exception as e:
+        print(f"UPDATE ACCESS REQUEST ERROR: {e}")
+
+#Get Access Request#
+
+ def get_access_request(user_id):
+    try:
+        conn = get_db()
+        c = conn.cursor()
+
+        c.execute("""
+            SELECT *
+            FROM access_requests
+            WHERE telegram_id = %s
+        """, (user_id,))
+
+        row = c.fetchone()
+
+        conn.close()
+
+        return row
+
+    except Exception as e:
+        print(f"GET ACCESS REQUEST ERROR: {e}")
+        return None
+
+#Update Onboarding Step#
+
+def update_onboarding_step(user_id, step):
+    try:
+        conn = get_db()
+        c = conn.cursor()
+
+        c.execute("""
+            UPDATE access_requests
+            SET onboarding_step = %s,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE telegram_id = %s
+        """, (step, user_id))
+
+        conn.commit()
+        conn.close()
+
+    except Exception as e:
+        print(f"UPDATE STEP ERROR: {e}")   
+
 init_db()
