@@ -488,8 +488,7 @@ def update_access_request(user_id, field, value):
         print(f"UPDATE ACCESS REQUEST ERROR: {e}")
 
 #Get Access Request#
-
- def get_access_request(user_id):
+def get_access_request(user_id):
     try:
         conn = get_db()
         c = conn.cursor()
