@@ -246,7 +246,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if status == "pending":
         request = get_access_request(user_id)
+        logger.info(f"START STATUS: {status}")
+        logger.info(f"ACCESS REQUEST: {request}")
+
         if request and request[11] == False:
+            logger.info("ONBOARDING NOT COMPLETE")
             await update.message.reply_text(
                  "👋 Welcome to Jarvis!\n\n"
             "What should I call you?"
@@ -254,6 +258,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         
         await update.message.reply_text("⏳ Still pending approval.")
+        logger.info("ENTERED PENDING BLOCK")
         return
     
     if status == "rejected":
