@@ -12,6 +12,8 @@ from telegram.ext import (
     filters, ContextTypes
 )
 
+from database import get_access_request
+
 BOT_LOOP = asyncio.new_event_loop()
 
 ONBOARDING_STEPS = [
@@ -243,6 +245,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     status = db_user[3] if len(db_user) > 3 else "pending"
     
     if status == "pending":
+        request = get_access_request(user_id)
+        if request and request[11] == False:
+            await update.message.reply_text(
+                 "👋 Welcome to Jarvis!\n\n"
+            "What should I call you?"
+        )
+            return
+        
         await update.message.reply_text("⏳ Still pending approval.")
         return
     
