@@ -63,6 +63,9 @@ try:
     get_user_preferences,
     add_todo,
     get_todos,
+    get_access_request,
+    update_access_request,
+    update_onboarding_step,
     create_access_request,
     complete_todo
 
@@ -454,7 +457,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     name = update.effective_user.first_name
     text = update.message.text
+    request = get_access_request(user_id)
 
+    if request and not request[12]:
+        current_step = request[11]
+        logger.info(f"ONBOARDING STEP: {current_step}")
+        if current_step == "name":
+            update_access_request(user_id, 
+                                  "full name",
+                                  text
+                                  )
+            update_onboarding_step(user_id, "profession")
+            await update.message.reply_text(
+            "💼 What do you do professionally?"
+            )
+
+            return
+                                          
     
     prefs = extract_preferences(text)
     logger.info(f"EXTRACTED PREFS: {prefs}")
