@@ -467,8 +467,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                                   "full_name",
                                   text
                                   )
-        elif current_step == "profession":
             update_onboarding_step(user_id, "profession")
+            await update.message.reply_text("💼 What do you do professionally?")
+            return
+        
+        elif current_step == "profession":
+            update_access_request(user_id, "profession")
             update_onboarding_step(user_id, "city")
             await update.message.reply_text(
                 "🏙️ Which city are you based in?"
